@@ -1,149 +1,125 @@
 # Input Validation Library
 
-A comprehensive Kotlin library for secure input validation, designed to prevent common security vulnerabilities including XSS, SQL injection, and SSRF attacks.
+A comprehensive Kotlin library for secure input validation, designed to prevent common security vulnerabilities including XSS, SQL injection, command injection, and path traversal attacks.
 
 ## Features
 
-- String validation and sanitization
-- File validation with MIME type checking
-- URL validation with SSRF protection
-- Advanced validation for:
-  - Dates
-  - IP addresses
-  - UUIDs
-- Protection against:
-  - XSS (Cross-Site Scripting)
-  - SQL Injection
-  - SSRF (Server-Side Request Forgery)
-  - Path Traversal
-  - File Upload Vulnerabilities
+### Security Validations
+- Cross-Site Scripting (XSS) detection
+- SQL injection detection
+- Command injection detection
+- Path traversal detection
+- Null byte injection detection
+
+### Format Validations
+- Email validation
+- Phone number validation
+- Username validation
+- Alphanumeric validation
+
+### Data Type Validations
+- Integer validation
+- Date validation (with custom format support)
+- Base64 validation
+- UTF-8 validation
+
+### Other Validations
+- Length validation
+- Range validation
+- Boundary testing
+- Empty input checks
+
+## Usage
+
+### Basic Usage
+
+```kotlin
+val validator = SecurityValidator()
+
+// Simple email validation
+val emailResult = validator.validateEmail("user@example.com")
+if (emailResult.isValid) {
+    // Process valid email
+}
+
+// Simple length validation
+val lengthResult = validator.validateLength("input", 3, 10)
+if (lengthResult.isValid) {
+    // Process valid length input
+}
+```
+
+### Comprehensive Validation
+
+```kotlin
+val options = ValidationOptions(
+    checkEmpty = true,
+    checkLength = true,
+    minLength = 3,
+    maxLength = 20,
+    checkType = false,
+    checkFormat = true,
+    expectedFormat = InputFormat.EMAIL,
+    checkSecurity = true
+)
+
+val result = validator.validateInput("test@example.com", options)
+if (result.isValid) {
+    // Process valid input
+} else {
+    // Handle validation error: result.message
+}
+```
+
+### Security Validation Examples
+
+```kotlin
+// XSS Detection
+val xssResult = validator.detectXSS("<script>alert(1)</script>")
+
+// SQL Injection Detection
+val sqlResult = validator.detectSQLInjection("' OR '1'='1")
+
+// Command Injection Detection
+val cmdResult = validator.detectCommandInjection("; rm -rf /")
+
+// Path Traversal Detection
+val pathResult = validator.detectPathTraversal("../../../etc/passwd")
+```
+
+## Validation Order
+
+The library follows a specific order for comprehensive validation:
+
+1. Empty check (most basic)
+2. Security checks (most critical)
+   - XSS detection
+   - SQL injection detection
+   - Command injection detection
+   - Path traversal detection
+   - Null byte detection
+3. Length validation
+4. Format validation
+5. Type validation
 
 ## Installation
 
-### Gradle
-
-Add the following to your `build.gradle.kts`:
+Add the following dependency to your project:
 
 ```kotlin
-repositories {
-    mavenCentral()
-    maven {
-        url = uri("https://github.com/sitraj/input-validation/packages")
-    }
-}
-
+// build.gradle.kts
 dependencies {
     implementation("com.security:input-validation:1.0.0")
 }
 ```
 
-### Maven
+## Testing
 
-Add the following to your `pom.xml`:
+The library includes comprehensive test coverage. Run tests using:
 
-```xml
-<dependency>
-    <groupId>com.security</groupId>
-    <artifactId>input-validation</artifactId>
-    <version>1.0.0</version>
-</dependency>
+```bash
+./gradlew test
 ```
-
-## Usage
-
-### String Validation
-
-```kotlin
-val validator = StringValidator()
-
-// Basic validation
-val result = validator.validate("input", maxLength = 255)
-if (result.isValid) {
-    // Process input
-}
-
-// XSS protection
-val xssResult = validator.checkForXSS("<script>alert('xss')</script>")
-if (!xssResult.isValid) {
-    // Handle XSS attempt
-}
-
-// Combined validation and sanitization
-val (validationResult, sanitizedInput) = validator.validateAndSanitize(userInput)
-if (validationResult.isValid) {
-    // Use sanitizedInput safely
-}
-```
-
-### File Validation
-
-```kotlin
-val fileValidator = FileValidator()
-
-// Validate file
-val fileResult = fileValidator.validateFile(file)
-if (!fileResult.isValid) {
-    // Handle invalid file
-}
-
-// Check file type
-val mimeResult = fileValidator.validateMimeType(file)
-if (!mimeResult.isValid) {
-    // Handle invalid file type
-}
-
-// Validate file size
-val sizeResult = fileValidator.validateFileSize(file, maxSize = 5 * 1024 * 1024) // 5MB
-if (!sizeResult.isValid) {
-    // Handle oversized file
-}
-```
-
-### URL Validation
-
-```kotlin
-val urlValidator = UrlValidator()
-
-// Validate URL
-val urlResult = urlValidator.validateUrl("https://example.com")
-if (!urlResult.isValid) {
-    // Handle invalid URL
-}
-
-// Validate and sanitize URL
-val (validationResult, sanitizedUrl) = urlValidator.validateAndSanitize(userInputUrl)
-if (validationResult.isValid) {
-    // Use sanitizedUrl safely
-}
-```
-
-### Advanced Validation
-
-```kotlin
-val advancedValidator = AdvancedValidator()
-
-// Validate date
-val dateResult = advancedValidator.validateDate("2024-03-21")
-
-// Validate IP address
-val ipResult = advancedValidator.validateIPAddress("192.168.1.1")
-
-// Validate UUID
-val uuidResult = advancedValidator.validateUUID("550e8400-e29b-41d4-a716-446655440000")
-```
-
-## Security Features
-
-- Comprehensive XSS pattern detection
-- SQL injection prevention
-- SSRF protection with internal network access prevention
-- Null byte injection protection
-- Path traversal prevention
-- File type validation
-- ZIP file bomb protection
-- Executable file detection
-- Maximum length restrictions
-- Input sanitization
 
 ## Contributing
 
@@ -153,9 +129,10 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Version History
+## Security
 
-- 1.0.0 (2024-03-21): Initial release
-  - Core validation functionality
-  - Security features
-  - Comprehensive test coverage 
+If you discover any security-related issues, please email security@example.com instead of using the issue tracker.
+
+## Credits
+
+Developed by [Your Name/Organization] 
