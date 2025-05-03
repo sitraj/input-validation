@@ -1,49 +1,52 @@
 # Input Validation Library
 
-A comprehensive Kotlin library for input validation and sanitization to prevent security vulnerabilities.
+A comprehensive Kotlin library for secure input validation, designed to prevent common security vulnerabilities including XSS, SQL injection, and SSRF attacks.
 
 ## Features
 
-- **String Validation**
-  - Length validation
-  - XSS prevention
-  - SQL injection prevention
-  - SSRF prevention
-  - HTML escaping
-  - Pattern matching
-
-- **Number Validation**
-  - Range validation
-  - Type checking
-  - Format validation
-
-- **URL Validation**
-  - Protocol validation
-  - Domain validation
-  - Path validation
-  - Query parameter validation
-  - SSRF prevention
-
-- **File Validation**
-  - File extension validation
-  - MIME type validation
-  - Size validation
-  - Content validation
-
-- **Advanced Validation**
-  - Date format validation
-  - IP address validation (IPv4 and IPv6)
-  - UUID validation (v4 and v6)
-  - Custom format validation
+- String validation and sanitization
+- File validation with MIME type checking
+- URL validation with SSRF protection
+- Advanced validation for:
+  - Dates
+  - IP addresses
+  - UUIDs
+- Protection against:
+  - XSS (Cross-Site Scripting)
+  - SQL Injection
+  - SSRF (Server-Side Request Forgery)
+  - Path Traversal
+  - File Upload Vulnerabilities
 
 ## Installation
 
-Add the following dependency to your `build.gradle.kts`:
+### Gradle
+
+Add the following to your `build.gradle.kts`:
 
 ```kotlin
-dependencies {
-    implementation("com.security:validation:1.0.0")
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://github.com/sitraj/input-validation/packages")
+    }
 }
+
+dependencies {
+    implementation("com.security:input-validation:1.0.0")
+}
+```
+
+### Maven
+
+Add the following to your `pom.xml`:
+
+```xml
+<dependency>
+    <groupId>com.security</groupId>
+    <artifactId>input-validation</artifactId>
+    <version>1.0.0</version>
+</dependency>
 ```
 
 ## Usage
@@ -54,18 +57,64 @@ dependencies {
 val validator = StringValidator()
 
 // Basic validation
-val result = validator.validate("input string", maxLength = 100)
+val result = validator.validate("input", maxLength = 255)
+if (result.isValid) {
+    // Process input
+}
 
-// Security checks
-val xssCheck = validator.checkForXSS("<script>alert('xss')</script>")
-val ssrfCheck = validator.checkForSSRF("http://localhost")
-val sqlCheck = validator.checkForSQLInjection("'; DROP TABLE users; --")
-
-// Sanitization
-val sanitized = validator.sanitize("<script>alert('xss')</script>")
+// XSS protection
+val xssResult = validator.checkForXSS("<script>alert('xss')</script>")
+if (!xssResult.isValid) {
+    // Handle XSS attempt
+}
 
 // Combined validation and sanitization
-val (validationResult, sanitizedInput) = validator.validateAndSanitize("input string")
+val (validationResult, sanitizedInput) = validator.validateAndSanitize(userInput)
+if (validationResult.isValid) {
+    // Use sanitizedInput safely
+}
+```
+
+### File Validation
+
+```kotlin
+val fileValidator = FileValidator()
+
+// Validate file
+val fileResult = fileValidator.validateFile(file)
+if (!fileResult.isValid) {
+    // Handle invalid file
+}
+
+// Check file type
+val mimeResult = fileValidator.validateMimeType(file)
+if (!mimeResult.isValid) {
+    // Handle invalid file type
+}
+
+// Validate file size
+val sizeResult = fileValidator.validateFileSize(file, maxSize = 5 * 1024 * 1024) // 5MB
+if (!sizeResult.isValid) {
+    // Handle oversized file
+}
+```
+
+### URL Validation
+
+```kotlin
+val urlValidator = UrlValidator()
+
+// Validate URL
+val urlResult = urlValidator.validateUrl("https://example.com")
+if (!urlResult.isValid) {
+    // Handle invalid URL
+}
+
+// Validate and sanitize URL
+val (validationResult, sanitizedUrl) = urlValidator.validateAndSanitize(userInputUrl)
+if (validationResult.isValid) {
+    // Use sanitizedUrl safely
+}
 ```
 
 ### Advanced Validation
@@ -73,47 +122,28 @@ val (validationResult, sanitizedInput) = validator.validateAndSanitize("input st
 ```kotlin
 val advancedValidator = AdvancedValidator()
 
-// Date validation
-val dateResult = advancedValidator.validateDate("2024-05-03", "yyyy-MM-dd")
+// Validate date
+val dateResult = advancedValidator.validateDate("2024-03-21")
 
-// IP address validation
-val ipv4Result = advancedValidator.validateIPAddress("192.168.1.1")
-val ipv6Result = advancedValidator.validateIPAddress("2001:0db8:85a3:0000:0000:8a2e:0370:7334")
+// Validate IP address
+val ipResult = advancedValidator.validateIPAddress("192.168.1.1")
 
-// UUID validation
-val uuidv4Result = advancedValidator.validateUUID("123e4567-e89b-12d3-a456-426614174000", version = 4)
-val uuidv6Result = advancedValidator.validateUUID("1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed", version = 6)
-
-// String validation with security checks
-val (validationResult, sanitizedInput) = validator.validateAndSanitize("input string")
+// Validate UUID
+val uuidResult = advancedValidator.validateUUID("550e8400-e29b-41d4-a716-446655440000")
 ```
 
 ## Security Features
 
-### XSS Prevention
-- Detects and sanitizes script tags
-- Prevents JavaScript event handlers
-- Escapes HTML special characters
-- Validates input patterns
-
-### SQL Injection Prevention
-- Detects common SQL injection patterns
-- Escapes special characters
-- Validates input patterns
-- Sanitizes SQL keywords
-
-### SSRF Prevention
-- Validates URLs against known internal IP ranges
-- Blocks access to localhost and internal services
-- Prevents access to metadata services
-- Validates URL protocols
-
-### Additional Security Measures
-- Input length validation
-- Pattern matching
-- Type checking
-- Format validation
-- Content sanitization
+- Comprehensive XSS pattern detection
+- SQL injection prevention
+- SSRF protection with internal network access prevention
+- Null byte injection protection
+- Path traversal prevention
+- File type validation
+- ZIP file bomb protection
+- Executable file detection
+- Maximum length restrictions
+- Input sanitization
 
 ## Contributing
 
@@ -121,4 +151,11 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Version History
+
+- 1.0.0 (2024-03-21): Initial release
+  - Core validation functionality
+  - Security features
+  - Comprehensive test coverage 
