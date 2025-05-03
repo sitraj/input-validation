@@ -132,7 +132,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Security
 
 If you discover any security-related issues, please email itrajsr@gmail.com instead of using the issue tracker.
-
-## Credits
-
-Developed by Shounak Itraj 
