@@ -3,6 +3,8 @@ package com.security.validation
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.attribute.BasicFileAttributes
+import java.util.zip.ZipFile
 
 class FileValidator {
     companion object {
@@ -14,6 +16,8 @@ class FileValidator {
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
         private const val MAX_FILE_SIZE: Long = 10L * 1024L * 1024L // 10MB
+        private const val MAX_FILENAME_LENGTH = 255
+        private val FORBIDDEN_FILENAME_CHARS = setOf('/', '\\', ':', '*', '?', '"', '<', '>', '|')
     }
 
     fun validateFile(file: File): ValidationResult {
@@ -22,6 +26,9 @@ class FileValidator {
         }
         if (!file.isFile) {
             return ValidationResult(false, "Path is not a file")
+        }
+        if (!file.canRead()) {
+            return ValidationResult(false, "File is not readable")
         }
         return ValidationResult(true, "File is valid")
     }
@@ -35,6 +42,9 @@ class FileValidator {
 
     fun validateFileExtension(file: File, allowedExtensions: Set<String> = ALLOWED_EXTENSIONS): ValidationResult {
         val extension = file.extension.lowercase()
+        if (extension.isEmpty()) {
+            return ValidationResult(false, "File must have an extension")
+        }
         if (!allowedExtensions.contains(extension)) {
             return ValidationResult(false, "File extension '$extension' is not allowed")
         }
@@ -64,6 +74,11 @@ class FileValidator {
                 bytes[2] == 0x4C.toByte() && bytes[3] == 0x46.toByte()) {
                 return ValidationResult(false, "File appears to be an executable")
             }
+            // Check for Mach-O header (macOS executables)
+            if (bytes.size >= 4 && bytes[0] == 0xCF.toByte() && bytes[1] == 0xFA.toByte() &&
+                bytes[2] == 0xED.toByte() && bytes[3] == 0xFE.toByte()) {
+                return ValidationResult(false, "File appears to be an executable")
+            }
             return ValidationResult(true, "File does not appear to be executable")
         } catch (e: Exception) {
             return ValidationResult(false, "Could not check file content: ${e.message}")
@@ -78,6 +93,39 @@ class FileValidator {
         if (normalizedPath.contains("..")) {
             return ValidationResult(false, "Path contains parent directory references")
         }
+        if (path.length > MAX_FILENAME_LENGTH) {
+            return ValidationResult(false, "Path length exceeds maximum limit of $MAX_FILENAME_LENGTH characters")
+        }
+        if (FORBIDDEN_FILENAME_CHARS.any { path.contains(it) }) {
+            return ValidationResult(false, "Path contains forbidden characters")
+        }
         return ValidationResult(true, "Path is valid")
+    }
+
+    fun validateZipFile(file: File): ValidationResult {
+        if (!file.extension.equals("zip", ignoreCase = true)) {
+            return ValidationResult(false, "File is not a ZIP archive")
+        }
+        try {
+            ZipFile(file).use { zip ->
+                val entries = zip.entries()
+                while (entries.hasMoreElements()) {
+                    val entry = entries.nextElement()
+                    if (entry.isDirectory) {
+                        continue
+                    }
+                    if (entry.size > MAX_FILE_SIZE) {
+                        return ValidationResult(false, "ZIP contains file exceeding size limit")
+                    }
+                    val entryPath = entry.name
+                    if (entryPath.contains("..") || entryPath.contains("/") || entryPath.contains("\\")) {
+                        return ValidationResult(false, "ZIP contains files with invalid paths")
+                    }
+                }
+            }
+            return ValidationResult(true, "ZIP file is valid")
+        } catch (e: Exception) {
+            return ValidationResult(false, "Invalid ZIP file: ${e.message}")
+        }
     }
 } 
