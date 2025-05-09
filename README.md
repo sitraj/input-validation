@@ -114,7 +114,7 @@ Add the following dependency to your project:
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("com.security:input-validation:1.0.1")
+    implementation("com.security:input-validation:1.0.2")
 }
 ```
 
