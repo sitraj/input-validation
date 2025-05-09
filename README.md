@@ -29,6 +29,11 @@ A comprehensive Kotlin library for secure input validation, designed to prevent 
 - Boundary testing
 - Empty input checks
 
+## Requirements
+
+- Java 21 or higher
+- Kotlin 1.9.22 or higher
+
 ## Usage
 
 ### Basic Usage
@@ -109,7 +114,7 @@ Add the following dependency to your project:
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("com.security:input-validation:1.0.0")
+    implementation("com.security:input-validation:1.0.1")
 }
 ```
 
